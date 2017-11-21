@@ -305,9 +305,6 @@ public class ApnsConnectionImpl implements ApnsConnection {
         return socket;
     }
 
-    int DELAY_IN_MS = 1000;
-    private static final int RETRIES = 3;
-
     public synchronized void sendMessage(ApnsNotification m) throws NetworkIOException {
         sendMessage(m, false);
         drainBuffer();
@@ -320,38 +317,17 @@ public class ApnsConnectionImpl implements ApnsConnection {
             ((StartSendingApnsDelegate) delegate).startSending(m, fromBuffer);
         }
 
-        int attempts = 0;
-        while (true) {
-            try {
-                attempts++;
-                Socket socket = getOrCreateSocket(fromBuffer);
-                socket.getOutputStream().write(m.marshall());
-                socket.getOutputStream().flush();
-                cacheNotification(m);
-
-                delegate.messageSent(m, fromBuffer);
-
-                //logger.debug("Message \"{}\" sent", m);
-                attempts = 0;
-                break;
-            } catch (IOException e) {
-                Utilities.close(socket);
-                if (attempts >= RETRIES) {
-                    logger.error("Couldn't send message after " + RETRIES + " retries." + m, e);
-                    delegate.messageSendFailed(m, e);
-                    Utilities.wrapAndThrowAsRuntimeException(e);
-                }
-                // The first failure might be due to closed connection (which in turn might be caused by
-                // a message containing a bad token), so don't delay for the first retry.
-                //
-                // Additionally we don't want to spam the log file in this case, only after the second retry
-                // which uses the delay.
-
-                if (attempts != 1) {
-                    logger.info("Failed to send message " + m + "... trying again after delay", e);
-                    Utilities.sleep(DELAY_IN_MS);
-                }
-            }
+        try {
+            Socket socket = getOrCreateSocket(fromBuffer);
+            socket.getOutputStream().write(m.marshall());
+            socket.getOutputStream().flush();
+            cacheNotification(m);
+            delegate.messageSent(m, fromBuffer);
+        } catch (IOException e) {
+            Utilities.close(socket);
+            delegate.messageSendFailed(m, e);
+            Utilities.wrapAndThrowAsRuntimeException(e);
+            logger.info("Failed to send message " + m, e);
         }
     }
 

@@ -28,33 +28,18 @@ public class ApnsConnectionTest {
         packetSentRegardless(factory, baos);
     }
 
-    @Test
-    public void errorOnce() {
+    /**
+     * Connection fails after first fail
+     */
+    @Test(expected = Exception.class)
+    public void error() {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         SocketFactory factory = mockClosedThenOpenSocket(baos, null, false, 1);
         packetSentRegardless(factory, baos);
     }
 
-    @Test
-    public void errorTwice() {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        SocketFactory factory = mockClosedThenOpenSocket(baos, null, false, 2);
-        packetSentRegardless(factory, baos);
-    }
-
-    /**
-     * Connection fails after three retries
-     */
-    @Test(expected = Exception.class)
-    public void errorThrice() {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        SocketFactory factory = mockClosedThenOpenSocket(baos, null, false, 3);
-        packetSentRegardless(factory, baos);
-    }
-
     private void packetSentRegardless(SocketFactory sf, ByteArrayOutputStream baos) {
         ApnsConnectionImpl connection = new ApnsConnectionImpl(sf, "localhost", 80);
-        connection.DELAY_IN_MS = 0;
         connection.sendMessage(msg);
         Assert.assertArrayEquals(msg.marshall(), baos.toByteArray());
         connection.close();

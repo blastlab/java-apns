@@ -7,26 +7,17 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Timeout;
 import org.mockito.Matchers;
-import uk.org.lidalia.slf4jext.Level;
 import uk.org.lidalia.slf4jtest.LoggingEvent;
 import uk.org.lidalia.slf4jtest.TestLoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static org.hamcrest.CoreMatchers.hasItem;
-import static org.hamcrest.CoreMatchers.not;
-import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @SuppressWarnings("deprecation")
 public class ApnsSimulatorTest extends ApnsSimulatorTestBase {
-
-    // final Logger logger = LoggerFactory.getLogger(ApnsSimulatorTest.class);
-
-    //@Rule
-    //public DumpThreadsOnErrorRule dump = new DumpThreadsOnErrorRule();
 
     @Rule
     public Timeout timeout = new Timeout(5000);
@@ -49,7 +40,6 @@ public class ApnsSimulatorTest extends ApnsSimulatorTestBase {
 
     @Test
     public void sendThousand() throws InterruptedException {
-        TestLoggerFactory.getInstance().setPrintLevel(Level.INFO);
         sendCount(1000, 0);
         assertNumberReceived(1000);
         assertDelegateSentCount(1000);
@@ -108,7 +98,6 @@ public class ApnsSimulatorTest extends ApnsSimulatorTestBase {
         send(-1, 8, -1);
         assertNumberReceived(3);
         final List<LoggingEvent> allLoggingEvents = TestLoggerFactory.getAllLoggingEvents();
-        assertThat(allLoggingEvents, not(hasItem(eventContains("Exception while waiting for error code"))));
     }
 
     @Test
